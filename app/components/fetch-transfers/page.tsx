@@ -1,3 +1,6 @@
+'use client'
+
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -41,7 +44,6 @@ const FetchTransferHistory = () => {
                     } else if (typeof emailInput === 'string' && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailInput)) {
                         refetch()
                     }
-                    console.log(data)
                 }} className='rounded-sm bg-blue-400 text-white px-[2rem] py-1'>Submit</button>
                 <div>
                     {data && isSuccess && (
@@ -51,21 +53,15 @@ const FetchTransferHistory = () => {
                             <br />
 
                             {data.user.accounts.map((account: any, index: any) => {
-                                console.log(index)
 
-                                const mykey = account.id;
 
                                 return (
-                                    <>
+                                    <div key={index}>
                                         <h3 className='font-bold text-2xl'>Sent Transfers</h3>
-                                        <div key={mykey}>
+                                        <div key={index}>
                                             <div>{account.sentTransfers.map((transfer: any, id: any) => {
-                                                console.log(id)
-                                                const mykey = id + '-sent'
-                                                console.log(mykey)
-
                                                 return (
-                                                    <div key={mykey}>
+                                                    <div key={`${id}-sent`}>
                                                         <br />
                                                         <p><strong>Transfer ID: </strong>{transfer.id}</p>
                                                         <p><strong>Transer amount: </strong>{transfer.amount}</p>
@@ -76,7 +72,7 @@ const FetchTransferHistory = () => {
                                             <br />
                                             <h3 className='font-bold text-2xl'>Received Transfers</h3>
                                             <div>{account.receivedTransfers.map((transfer: any, id: any) => (
-                                                <div key={id}>
+                                                <div key={`${id}-received`}>
                                                     <br />
                                                     <p><strong>Transfer ID: </strong>{transfer.id}</p>
                                                     <p><strong>Transer amount: </strong>{transfer.amount}</p>
@@ -84,12 +80,10 @@ const FetchTransferHistory = () => {
                                                 </div>
                                             ))}</div>
                                         </div>
-
-
-                                    </>
-
+                                    </div>
                                 )
                             })}
+
                         </div>
                     )}
                 </div>

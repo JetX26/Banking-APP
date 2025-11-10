@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import axios from 'axios'
 import { useState } from 'react'
@@ -18,13 +19,13 @@ const FetchUser = () => {
         }
     }
 
-    const { data, isLoading, error, refetch, isSuccess, isStale } = useQuery({
+    const { data, isLoading, refetch, isSuccess } = useQuery({
         queryKey: ['fetchUser', userData],
         queryFn: () => fetchUser(userData),
         enabled: false
     })
 
-    const keys = ['First Name', 'Last Name', 'Email', 'Phone', 'Accounts']
+    // const keys = ['First Name', 'Last Name', 'Email', 'Phone', 'Accounts']
 
 
 

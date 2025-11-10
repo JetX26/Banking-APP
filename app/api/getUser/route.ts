@@ -8,10 +8,13 @@ export async function GET(req: NextRequest) {
 
         const fetchUserByEmail = await prisma.customer.findFirst({
             where: {
-                email: emailSearch,
+                email: emailSearch
             },
             include: {
-                accounts: true
+                accounts: true,
+            },
+            omit: {
+                password: true
             }
         })
         if (!fetchUserByEmail) {

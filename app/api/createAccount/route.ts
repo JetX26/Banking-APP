@@ -1,5 +1,6 @@
 import prisma from "@/prisma";
 import { NextResponse, NextRequest } from "next/server";
+import bcrypt from 'bcrypt'
 
 
 
@@ -19,7 +20,6 @@ export async function POST(req: NextRequest) {
     }
 
 
-
     try {
         console.log('Running')
 
@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        console.log(firstName, lastName, email, phone, password, balance, accountType)
+
+        const hashedPassword = await bcrypt.hash(password, 10)
 
 
         const customer = await prisma.customer.findFirst({
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
                     lastName,
                     email,
                     phone,
-                    password,
+                    password: hashedPassword,
                     accounts: {
                         create: {
                             accountNumber: generateAccountNumber(),
