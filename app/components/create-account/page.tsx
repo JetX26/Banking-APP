@@ -3,33 +3,42 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import { useMutation } from '@tanstack/react-query';
-
-
-
+import { useRouter } from 'next/navigation';
 
 const CreateAccount = () => {
 
     const inputs = ['First Name', 'Last Name', 'Email', 'Phone', 'Password', 'Amount']
     const accountTypes = ['Select Account Type', 'Checking', 'Savings']
 
-
     const [accountType, setAccountType] = useState('')
     const [balance, setBalance] = useState<number>(0)
-
+    const [amount, setAmount] = useState('')
 
     const { mutateAsync } = useMutation({
         mutationFn: async (formValues: any) => {
-            const { data } = await axios.post('/api/createAccount', formValues)
-            return data;
+            const response = await axios.post('/api/createAccount', formValues)
+            return { data: response.data, status: response.status, message: response.data.message }
         }
     })
 
+    const router = useRouter()
 
+    const handleAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let numeric = e.target.value.replace(/[^0-9.]/g, "");
 
+        const parts = numeric.split(".");
+        if (parts.length > 2) numeric = parts[0] + "." + parts[1];
+
+        const [intPart, decPart] = numeric.split(".");
+        const formattedInt = intPart ? Number(intPart).toLocaleString() : "";
+        const formatted = decPart !== undefined ? `$${formattedInt}.${decPart}` : `$${formattedInt}`;
+
+        setAmount(formatted);
+        setBalance(numeric ? parseFloat(numeric) : 0);
+    };
 
     const submit = async (e: any) => {
         e.preventDefault()
-
 
         const formData = new FormData(e.currentTarget)
         const firstName = formData.get('First Name')
@@ -38,15 +47,23 @@ const CreateAccount = () => {
         const phone = formData.get('Phone')
         const password = formData.get('Password')
 
-
-
         if (!firstName || !lastName || !email || !phone || !password) {
             alert('Please fill in all required fields...')
         }
 
         console.log(e.currentTarget.value)
 
+        const verificationCode = async (length = 6) => {
+            let code = ''
+            for (let i = 0; i < length; i++) {
+                code += Math.floor(Math.random() * 10)
+            }
+            console.log(code)
+            return code;
+        }
+
         try {
+
             const result = await mutateAsync({
                 firstName,
                 lastName,
@@ -57,52 +74,83 @@ const CreateAccount = () => {
                 balance
             })
 
-
-
             if (result) {
                 alert('Account created successfully!')
+                verificationCode()
+                router.push('/components/login')
                 console.log(result)
             }
 
-
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Something went wrong')
+            console.error(error.response?.data?.error || 'Something went wrong')
         }
-
 
     }
 
-
-
-
     return (
+        <div className='min-h-screen bg-white flex flex-col justify-center items-center px-4 py-8 sm:px-6 md:px-8'>
+            <form
+                onSubmit={submit}
+                className="w-full max-w-md bg-white rounded-lg p-6 sm:p-8 md:p-12 flex flex-col items-center gap-4">
 
-        <form
-            onSubmit={submit}
-            className="bg-white  rounded-sm p-12 flex flex-col items-center gap-4">
-            <h1 className='text-2xl'>Create An Account</h1>
-            <div className='flex flex-col items-center gap-3'>
-                {inputs.map((item, id) => {
-                    return <div key={id}>
-                        {item === 'Amount' ? <input onChange={(e) => {
-                            setBalance(Number(e.currentTarget.value))
-                            console.log(balance)
-                        }} placeholder={`${item}`} className='border-[1px] border-gray-200 rounded-sm px-2 py-2'></input> : <input name={item} type='text' className='border-[1px] border-gray-200 rounded-sm px-2 py-2' placeholder={item} />}
-                    </div>
-                })}
-                <select onChange={(e) => {
-                    setAccountType(e.target.value)
-                }} className='pr-4 pl-1 w-full py-2 border-[1px] border-gray-200 rounded-sm'>
-                    {accountTypes.map((item, id) => {
-                        return <option key={id}>{item}</option>
+                <h1 className='text-xl sm:text-2xl md:text-2xl font-semibold text-center'>Create An Account</h1>
+
+                <div className='w-full flex flex-col items-center gap-3'>
+                    {inputs.map((item, id) => {
+                        return (
+                            <div key={id} className='w-full'>
+                                {item === 'Amount' ? (
+                                    <input
+                                        value={amount}
+                                        onChange={handleAmount}
+                                        placeholder='$0.00'
+                                        className='w-full border-[1px] border-gray-200 rounded-sm px-2 py-2 text-sm sm:text-base focus:outline-none'
+                                    />
+                                ) : (
+                                    <input
+                                        name={item}
+                                        type='text'
+                                        className='w-full border-[1px] border-gray-200 rounded-sm px-2 py-2 text-sm sm:text-base focus:outline-none'
+                                        placeholder={item}
+                                    />
+                                )}
+                            </div>
+                        )
                     })}
-                </select>
-                <button type='submit' className='rounded-sm bg-blue-400 text-white px-[2rem] py-1'>Create Account</button>
-            </div >
-        </form >
+
+                    <select
+                        onChange={(e) => {
+                            setAccountType(e.target.value)
+                        }}
+                        className='w-full pr-4 pl-1 py-2 border-[1px] border-gray-200 rounded-sm text-sm sm:text-base focus:outline-none'
+                    >
+                        {accountTypes.map((item, id) => {
+                            return <option key={id}>{item}</option>
+                        })}
+                    </select>
+
+                    <button
+                        type='submit'
+                        className='w-full rounded-sm bg-blue-400 hover:bg-blue-500 text-white font-medium px-4 py-2 sm:py-2 text-sm sm:text-base transition-colors'
+                    >
+                        Create Account
+                    </button>
+                </div>
+            </form>
+
+            <div className='w-full max-w-md flex flex-col justify-center items-center gap-3 mt-6 sm:mt-8'>
+                <p className='text-sm sm:text-base text-center'>Already have an account?</p>
+                <button
+                    onClick={() => {
+                        router.push('/components/login')
+                    }}
+                    className='w-full rounded-sm bg-blue-400 hover:bg-blue-500 text-white font-medium px-4 py-2 text-sm sm:text-base transition-colors'
+                >
+                    Login
+                </button>
+            </div>
+        </div>
     )
-
-
 }
 
 export default CreateAccount

@@ -9,6 +9,7 @@ const GetBalance = () => {
 
     const getUserBalance = async (accountNumber: string) => {
         try {
+
             const response = await axios.get('/api/getBalance', { params: { accountNumber } })
 
             return response.data;
@@ -18,49 +19,85 @@ const GetBalance = () => {
         }
     }
 
-    const { data, refetch, isSuccess, error, isError, isLoading } = useQuery({
+    const { data, refetch, isSuccess, isLoading } = useQuery({
         queryKey: ['getUserBalance', accountNumberInput],
         queryFn: () => getUserBalance(accountNumberInput),
         enabled: false
     })
 
-
     const queryClient = useQueryClient()
 
     const cachedData = queryClient.getQueryData(['getUserBalance', accountNumberInput])
-
 
     useEffect(() => {
         console.log(accountNumberInput)
     }, [accountNumberInput])
 
     return (
-        <div className="bg-white  rounded-sm p-12 flex flex-col items-center gap-4">
-            <h1 className='text-2xl'>Get Balance</h1>
-            <div className='flex flex-col items-center gap-3'>
-                <input onChange={(e) => {
-                    setAccountNumberInput(e.currentTarget.value)
-                }} className='rounded-sm border-[1px] border-gray-200 px-2 py-2' type="text" placeholder='Account number' />
-                <button onClick={() => {
-                    refetch()
-                    console.log(data)
-                    // console.log(customerData[0])
-                }} className='rounded-sm bg-blue-400 text-white px-[2rem] py-1'>Submit</button>
-                {data && isSuccess && (
-                    <div>
-                        <div>{data && isSuccess && (
-                            <div>
-                                <p><strong>First Name:</strong> {data.response.customer.firstName}</p>
-                                <p><strong>Last Name:</strong> {data.response.customer.lastName}</p>
-                                <p><strong>Account Number:</strong> {data.response.accountNumber}</p>
-                                <p><strong>Balance:</strong> {data.response.balance}</p>
-                                <p><strong>Account Type:</strong> {data.response.accountType}</p>
-                            </div>
-                        )}</div>
+        <div className="bg-white w-full flex flex-col items-center gap-4 px-4 py-8 sm:px-6 md:p-12">
+            <h1 className='text-xl sm:text-2xl md:text-2xl font-semibold'>Get Balance</h1>
+
+            <div className='w-full max-w-md flex flex-col items-center gap-3'>
+                <input
+                    onChange={(e) => {
+                        setAccountNumberInput(e.currentTarget.value)
+                    }}
+                    className='w-full rounded-sm border-[1px] border-gray-200 px-2 py-2 text-sm sm:text-base focus:outline-none'
+                    placeholder='Account number'
+                />
+
+                <button
+                    onClick={() => {
+                        if (!accountNumberInput) {
+                            alert('Please type in an account number...')
+                            return;
+                        }
+                        refetch()
+                        console.log(data)
+                    }}
+                    className='w-full rounded-sm bg-blue-400 hover:bg-blue-500 text-white font-medium px-4 py-2 text-sm sm:text-base transition-colors'
+                >
+                    Submit
+                </button>
+
+                {isLoading && (
+                    <div className='flex justify-center'>
+                        <p className='text-sm sm:text-base'>Loading...</p>
                     </div>
                 )}
-            </div >
-        </div >
+
+                {data && isSuccess && (
+                    <div className='w-full bg-gray-50 rounded-sm p-4 sm:p-6 border border-gray-200'>
+                        <div className='space-y-3'>
+                            <div>
+                                <p className='text-xs sm:text-sm text-gray-600'><strong>First Name:</strong></p>
+                                <p className='text-sm sm:text-base text-gray-800'>{data.response.customer.firstName}</p>
+                            </div>
+
+                            <div>
+                                <p className='text-xs sm:text-sm text-gray-600'><strong>Last Name:</strong></p>
+                                <p className='text-sm sm:text-base text-gray-800'>{data.response.customer.lastName}</p>
+                            </div>
+
+                            <div>
+                                <p className='text-xs sm:text-sm text-gray-600'><strong>Account Number:</strong></p>
+                                <p className='text-sm sm:text-base text-gray-800 break-all'>{data.response.accountNumber}</p>
+                            </div>
+
+                            <div>
+                                <p className='text-xs sm:text-sm text-gray-600'><strong>Balance:</strong></p>
+                                <p className='text-sm sm:text-base font-semibold text-green-600'>${data.response.balance}</p>
+                            </div>
+
+                            <div>
+                                <p className='text-xs sm:text-sm text-gray-600'><strong>Account Type:</strong></p>
+                                <p className='text-sm sm:text-base text-gray-800'>{data.response.accountType}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
     )
 }
 
